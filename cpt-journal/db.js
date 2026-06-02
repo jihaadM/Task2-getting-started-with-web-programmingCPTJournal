@@ -33,7 +33,7 @@ if (count.c === 0) {
 
   ins.run(
     'Welcome to CPT Journal',
-    `Cape Town is one of the most spectacular cities on earth. Nestled between the iconic Table Mountain and two oceans, it offers an extraordinary blend of natural beauty, rich culture, and vibrant city life, full of diversity and good times.\n\nCPT Journal exists to capture the very best of what the Mother City has to offer — from hidden neighbourhood gems to world-famous landmarks. Whether you are a first-time visitor or a lifelong Capetonian, there is always something new to discover.`,
+    `Cape Town is one of the most spectacular cities on earth. Nestled between the iconic Table Mountain and two oceans, it offers an extraordinary blend of natural beauty, rich culture, and vibrant city life.\n\nCPT Journal exists to capture the very best of what the Mother City has to offer — from hidden neighbourhood gems to world-famous landmarks. Whether you are a first-time visitor or a lifelong Capetonian, there is always something new to discover.`,
     'Jihaad Marcus'
   );
 
