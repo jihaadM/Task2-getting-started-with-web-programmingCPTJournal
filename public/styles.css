@@ -1,0 +1,51 @@
+/* ── CPT Journal — Custom Styles ────────────────────────────── */
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2c2c2c;
+}
+
+/* ── Hero ─────────────────────────────────────────────────── */
+.hero-section {
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  padding: 5rem 1rem;
+}
+
+/* ── Post Cards ───────────────────────────────────────────── */
+.post-card {
+  border: 1px solid #e8e8e8 !important;
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.10) !important;
+}
+
+/* ── Post Content ─────────────────────────────────────────── */
+.post-content {
+  font-size: 1.07rem;
+  line-height: 1.85;
+  color: #3a3a3a;
+}
+
+/* ── Comment Cards ────────────────────────────────────────── */
+.comment-card {
+  background-color: #f8f9fa;
+  border-radius: 10px !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* ── Navbar ───────────────────────────────────────────────── */
+.navbar-brand {
+  font-size: 1.25rem;
+  letter-spacing: 0.3px;
+}
+
+/* ── Admin table ──────────────────────────────────────────── */
+.table th {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
