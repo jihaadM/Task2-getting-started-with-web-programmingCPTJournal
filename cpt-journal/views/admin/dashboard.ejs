@@ -3,80 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard | CPT Journal</title>
+  <title>Dashboard | CPT Journal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="/style.css" rel="stylesheet">
 </head>
 <body>
-
-  <!-- ADMIN NAVBAR -->
-  <nav class="navbar navbar-dark bg-dark">
-    <div class="container">
-      <a class="navbar-brand fw-bold" href="/">📍 CPT Journal</a>
-      <div class="d-flex gap-2">
-        <a href="/admin/new"    class="btn btn-sm btn-success">+ New Post</a>
-        <a href="/"             class="btn btn-sm btn-outline-light">View Blog</a>
-        <a href="/admin/logout" class="btn btn-sm btn-outline-danger">Logout</a>
-      </div>
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/">CPT Journal</a>
+    <div class="d-flex gap-2">
+      <a href="/admin/new" class="btn btn-sm btn-success">+ New Post</a>
+      <a href="/" class="btn btn-sm btn-outline-light">View Blog</a>
+      <a href="/admin/logout" class="btn btn-sm btn-outline-danger">Logout</a>
     </div>
-  </nav>
-
-  <div class="container my-5">
-    <h2 class="fw-bold mb-1">Admin Dashboard</h2>
-    <p class="text-muted mb-4">Manage all CPT Journal posts below.</p>
-
-    % if (posts.length === 0) { %>
-      <div class="alert alert-info">
-        No posts yet. <a href="/admin/new" class="alert-link">Create your first post →</a>
-      </div>
-    % } else { %>
-      <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
-          <thead class="table-dark">
-            <tr>
-              <th style="width:40px">#</th>
-              <th>Title</th>
-              <th>Author</th>
-              <th>Published</th>
-              <th style="width:160px">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            % posts.forEach(post => { %>
-              <tr>
-                <td class="text-muted">%= post.id %></td>
-                <td>
-                  <a href="/post/%= post.id %>" target="_blank" class="text-decoration-none fw-semibold">
-                    %= post.title %>
-                  </a>
-                </td>
-                <td>%= post.author %></td>
-                <td class="text-muted small">
-                  %= new Date(post.created_at).toLocaleDateString('en-ZA',
-                      { day: 'numeric', month: 'short', year: 'numeric' }) %>
-                </td>
-                <td>
-                  <a href="/admin/edit/%= post.id %>"
-                     class="btn btn-sm btn-outline-primary me-1">Edit</a>
-
-                  <form method="POST" action="/admin/delete/%= post.id %>"
-                        class="d-inline"
-                        onsubmit="return confirm('Delete this post and ALL its comments? This cannot be undone.')">
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                  </form>
-                </td>
-              </tr>
-            % }) %>
-          </tbody>
-        </table>
-      </div>
-      <p class="text-muted small">%= posts.length %> post(s) total.</p>
-    % } %>
   </div>
-
-  <footer class="bg-dark text-white text-center py-3 mt-5">
-    <p class="mb-0 small">© 2026 CPT Journal &nbsp;|&nbsp; Jihaad Marcus &nbsp;|&nbsp; DLBITPEWP01_E</p>
-  </footer>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</nav>
+<div class="container my-5">
+  <h2 class="fw-bold mb-4">Admin Dashboard</h2>
+  <% if (posts.length === 0) { %>
+    <div class="alert alert-info">No posts yet. <a href="/admin/new">Create one</a>.</div>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-dark">
+          <tr><th>#</th><th>Title</th><th>Author</th><th>Date</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <% posts.forEach(post => { %>
+            <tr>
+              <td><%= post.id %></td>
+              <td><a href="/post/<%= post.id %>" target="_blank"><%= post.title %></a></td>
+              <td><%= post.author %></td>
+              <td><%= new Date(post.created_at).toLocaleDateString() %></td>
+              <td>
+                <a href="/admin/edit/<%= post.id %>" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+                <form method="POST" action="/admin/delete/<%= post.id %>" class="d-inline"
+                      onsubmit="return confirm('Delete this post and all its comments?')">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+<footer class="bg-dark text-white text-center py-3 mt-5">
+  <p class="mb-0 small">2026 CPT Journal | Jihaad Marcus | DLBITPEWP01_E</p>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

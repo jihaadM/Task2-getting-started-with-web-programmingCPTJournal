@@ -3,66 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>%= post ? 'Edit Post' : 'New Post' %> | CPT Journal Admin</title>
+  <title><%= post ? 'Edit Post' : 'New Post' %> | CPT Journal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="/style.css" rel="stylesheet">
 </head>
 <body>
-
-  <nav class="navbar navbar-dark bg-dark">
-    <div class="container">
-      <a class="navbar-brand fw-bold" href="/">📍 CPT Journal</a>
-      <div class="d-flex gap-2">
-        <a href="/admin"        class="btn btn-sm btn-outline-light">← Dashboard</a>
-        <a href="/admin/logout" class="btn btn-sm btn-outline-danger">Logout</a>
-      </div>
-    </div>
-  </nav>
-
-  <div class="container my-5" style="max-width: 720px;">
-    <h2 class="fw-bold mb-1">%= post ? 'Edit Post' : 'Create New Post' %></h2>
-    <p class="text-muted mb-4">
-      %= post ? 'Update the fields below and click Save Changes.' : 'Fill in the form below and click Publish.' %>
-    </p>
-
-    <form method="POST" action="%= action %>">
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
-        <input type="text" name="title" class="form-control form-control-lg"
-               required maxlength="200"
-               value="%= post ? post.title : '' %>"
-               placeholder="Enter post title">
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Author</label>
-        <input type="text" name="author" class="form-control"
-               maxlength="100"
-               value="%= post ? post.author : 'Jihaad Marcus' %>"
-               placeholder="Author name">
-      </div>
-
-      <div class="mb-4">
-        <label class="form-label fw-semibold">Content <span class="text-danger">*</span></label>
-        <textarea name="content" class="form-control" rows="14" required
-                  placeholder="Write your post content here. Use blank lines to separate paragraphs.">%= post ? post.content : '' %></textarea>
-        <div class="form-text">Use blank lines between paragraphs. Max 50 000 characters.</div>
-      </div>
-
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-dark px-4">
-          %= post ? 'Save Changes' : 'Publish Post' %>
-        </button>
-        <a href="/admin" class="btn btn-outline-secondary">Cancel</a>
-      </div>
-
-    </form>
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/">CPT Journal</a>
+    <a href="/admin" class="btn btn-sm btn-outline-light">Dashboard</a>
   </div>
-
-  <footer class="bg-dark text-white text-center py-3 mt-5">
-    <p class="mb-0 small">© 2026 CPT Journal &nbsp;|&nbsp; Jihaad Marcus &nbsp;|&nbsp; DLBITPEWP01_E</p>
-  </footer>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</nav>
+<div class="container my-5" style="max-width:720px">
+  <h2 class="fw-bold mb-4"><%= post ? 'Edit Post' : 'Create New Post' %></h2>
+  <form method="POST" action="<%= action %>">
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Title *</label>
+      <input type="text" name="title" class="form-control form-control-lg" required
+             value="<%= post ? post.title : '' %>">
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Author</label>
+      <input type="text" name="author" class="form-control"
+             value="<%= post ? post.author : 'Jihaad Marcus' %>">
+    </div>
+    <div class="mb-4">
+      <label class="form-label fw-semibold">Content *</label>
+      <textarea name="content" class="form-control" rows="12" required><%= post ? post.content : '' %></textarea>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-dark"><%= post ? 'Save Changes' : 'Publish Post' %></button>
+      <a href="/admin" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+<footer class="bg-dark text-white text-center py-3 mt-5">
+  <p class="mb-0 small">2026 CPT Journal | Jihaad Marcus | DLBITPEWP01_E</p>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

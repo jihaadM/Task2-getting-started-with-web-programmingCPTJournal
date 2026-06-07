@@ -1,1 +1,5 @@
-body{font-family:Segoe UI,sans-serif}.card{border-radius:12px;transition:transform .2s,box-shadow .2s}.card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.1)!important}
+body { font-family: 'Segoe UI', sans-serif; }
+.hero { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); }
+.post-card { border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s; }
+.post-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important; }
+.post-content { font-size: 1.05rem; line-height: 1.8; }

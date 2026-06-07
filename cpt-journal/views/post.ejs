@@ -3,184 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>%= post.title %> | CPT Journal</title>
+  <title><%= post.title %> | CPT Journal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="/style.css" rel="stylesheet">
 </head>
 <body>
-
-  <!-- NAVBAR -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-      <a class="navbar-brand fw-bold" href="/">📍 CPT Journal</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navMenu">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
-          <li class="nav-item"><a class="nav-link" href="/admin/login">Admin</a></li>
-        </ul>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/">CPT Journal</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/login">Admin</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<div class="container my-5" style="max-width:800px">
+  <a href="/" class="btn btn-sm btn-outline-secondary mb-4">Back to posts</a>
+  <article class="mb-5">
+    <h1 class="fw-bold"><%= post.title %></h1>
+    <p class="text-muted">By <strong><%= post.author %></strong> | <%= new Date(post.created_at).toLocaleDateString() %></p>
+    <hr>
+    <div class="post-content"><%- post.content.replace(/\n/g, "<br>") %></div>
+  </article>
+  <section>
+    <h4 class="mb-3">Comments (<span id="count"><%= comments.length %></span>)</h4>
+    <div id="list">
+      <% if (comments.length === 0) { %>
+        <p id="none" class="text-muted">No comments yet. Be the first!</p>
+      <% } %>
+      <% comments.forEach(c => { %>
+        <div class="border rounded p-3 mb-3 bg-light">
+          <strong><%= c.author_name %></strong>
+          <span class="text-muted small ms-2"><%= new Date(c.created_at).toLocaleDateString() %></span>
+          <p class="mb-0 mt-1"><%= c.body %></p>
+        </div>
+      <% }) %>
+    </div>
+    <div class="card mt-4 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Leave a Comment</h5>
+        <div id="msg" class="alert d-none"></div>
+        <div class="mb-3">
+          <label class="form-label">Name</label>
+          <input id="cname" type="text" class="form-control" placeholder="Your name">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Comment</label>
+          <textarea id="cbody" class="form-control" rows="4" placeholder="Write your comment..."></textarea>
+        </div>
+        <button id="sub" class="btn btn-dark">Submit Comment</button>
       </div>
     </div>
-  </nav>
-
-  <div class="container my-5" style="max-width: 800px;">
-
-    <!-- BACK LINK -->
-    <a href="/" class="btn btn-sm btn-outline-secondary mb-4">← Back to all posts</a>
-
-    <!-- ARTICLE -->
-    <article class="mb-5">
-      <h1 class="fw-bold">%= post.title %></h1>
-      <p class="text-muted mb-3">
-        By <strong>%= post.author %></strong> &nbsp;|&nbsp;
-        %= new Date(post.created_at).toLocaleDateString('en-ZA',
-            { day: 'numeric', month: 'long', year: 'numeric' }) %>
-      </p>
-      <hr class="mb-4">
-      <div class="post-content">
-        %- post.content.replace(/\n/g, '<br>') %>
-      </div>
-    </article>
-
-    <!-- COMMENTS SECTION -->
-    <section>
-      <h4 class="mb-3 fw-semibold">
-         Comments (<span id="comment-count">%= comments.length %></span>)
-      </h4>
-
-      <div id="comments-list">
-        % if (comments.length === 0) { %>
-          <p id="no-comments" class="text-muted fst-italic">
-            No comments yet — be the first!
-          </p>
-        % } else { %>
-          % comments.forEach(c => { %>
-            <div class="comment-card border rounded p-3 mb-3">
-              <div class="d-flex justify-content-between mb-1">
-                <strong>%= c.author_name %></strong>
-                <span class="text-muted small">
-                  %= new Date(c.created_at).toLocaleDateString('en-ZA',
-                      { day: 'numeric', month: 'short', year: 'numeric' }) %>
-                </span>
-              </div>
-              <p class="mb-0">%= c.body %></p>
-            </div>
-          % }) %>
-        % } %>
-      </div>
-
-      <!-- COMMENT FORM -->
-      <div class="card mt-4 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title fw-semibold mb-3">Leave a Comment</h5>
-
-          <!-- Alert message (hidden by default) -->
-          <div id="form-message" class="alert d-none" role="alert"></div>
-
-          <div class="mb-3">
-            <label for="comment-name" class="form-label">Name <span class="text-danger">*</span></label>
-            <input type="text" id="comment-name" class="form-control"
-                   placeholder="Your name" maxlength="100">
-          </div>
-
-          <div class="mb-3">
-            <label for="comment-body" class="form-label">Comment <span class="text-danger">*</span></label>
-            <textarea id="comment-body" class="form-control" rows="4"
-                      placeholder="Write your comment here…" maxlength="1000"></textarea>
-          </div>
-
-          <button id="submit-comment" class="btn btn-dark">
-            Submit Comment
-          </button>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- FOOTER -->
-  <footer class="bg-dark text-white text-center py-3 mt-5">
-    <p class="mb-0 small">© 2026 CPT Journal &nbsp;|&nbsp; Jihaad Marcus &nbsp;|&nbsp; DLBITPEWP01_E</p>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- AJAX COMMENT SUBMISSION -->
-  <script>
-    document.getElementById('submit-comment').addEventListener('click', async () => {
-      const nameInput = document.getElementById('comment-name');
-      const bodyInput = document.getElementById('comment-body');
-      const msgEl    = document.getElementById('form-message');
-
-      const name = nameInput.value.trim();
-      const body = bodyInput.value.trim();
-
-      // Client-side validation
-      if (!name || !body) {
-        msgEl.className = 'alert alert-warning';
-        msgEl.textContent = 'Please fill in both your name and comment before submitting.';
-        msgEl.classList.remove('d-none');
-        return;
+  </section>
+</div>
+<footer class="bg-dark text-white text-center py-3 mt-5">
+  <p class="mb-0 small">2026 CPT Journal | Jihaad Marcus | DLBITPEWP01_E</p>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.getElementById("sub").addEventListener("click", async () => {
+    const name = document.getElementById("cname").value.trim();
+    const body = document.getElementById("cbody").value.trim();
+    const msg  = document.getElementById("msg");
+    if (!name || !body) {
+      msg.className = "alert alert-warning";
+      msg.textContent = "Please fill in both fields.";
+      msg.classList.remove("d-none");
+      return;
+    }
+    const btn = document.getElementById("sub");
+    btn.disabled = true;
+    btn.textContent = "Posting...";
+    try {
+      const res  = await fetch("/post/<%= post.id %>/comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ author_name: name, body: body })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        const none = document.getElementById("none");
+        if (none) none.remove();
+        const div = document.createElement("div");
+        div.className = "border rounded p-3 mb-3 bg-light";
+        div.innerHTML = "<strong>" + data.comment.author_name + "</strong>" +
+          "<span class='text-muted small ms-2'>Just now</span>" +
+          "<p class='mb-0 mt-1'>" + data.comment.body + "</p>";
+        document.getElementById("list").appendChild(div);
+        document.getElementById("count").textContent =
+          parseInt(document.getElementById("count").textContent) + 1;
+        document.getElementById("cname").value = "";
+        document.getElementById("cbody").value = "";
+        msg.className = "alert alert-success";
+        msg.textContent = "Comment posted!";
+        msg.classList.remove("d-none");
+        setTimeout(() => msg.classList.add("d-none"), 3000);
       }
-
-      // Disable button while sending
-      const btn = document.getElementById('submit-comment');
-      btn.disabled = true;
-      btn.textContent = 'Posting…';
-
-      try {
-        // Send POST request to server with JSON (AJAX — no page reload)
-        const response = await fetch('/post/<%= post.id %>/comment', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ author_name: name, body })
-        });
-        const data = await response.json();
-
-        if (data.ok) {
-          // Remove "no comments" placeholder if present
-          const placeholder = document.getElementById('no-comments');
-          if (placeholder) placeholder.remove();
-
-          // Build new comment card and append to DOM (no reload!)
-          const list = document.getElementById('comments-list');
-          const card = document.createElement('div');
-          card.className = 'comment-card border rounded p-3 mb-3';
-          card.innerHTML = `
-            <div class="d-flex justify-content-between mb-1">
-              <strong>${data.comment.author_name}</strong>
-              <span class="text-muted small">Just now</span>
-            </div>
-            <p class="mb-0">${data.comment.body}</p>`;
-          list.appendChild(card);
-
-          // Update comment counter
-          const counter = document.getElementById('comment-count');
-          counter.textContent = parseInt(counter.textContent) + 1;
-
-          // Clear inputs
-          nameInput.value = '';
-          bodyInput.value = '';
-
-          // Show success message
-          msgEl.className = 'alert alert-success';
-          msgEl.textContent = '✓ Comment posted successfully!';
-          msgEl.classList.remove('d-none');
-          setTimeout(() => msgEl.classList.add('d-none'), 3500);
-        } else {
-          throw new Error(data.error || 'Server error');
-        }
-      } catch (err) {
-        msgEl.className = 'alert alert-danger';
-        msgEl.textContent = 'Error posting comment. Please try again.';
-        msgEl.classList.remove('d-none');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Submit Comment';
-      }
-    });
-  </script>
+    } catch (e) {
+      msg.className = "alert alert-danger";
+      msg.textContent = "Error. Try again.";
+      msg.classList.remove("d-none");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Submit Comment";
+    }
+  });
+</script>
 </body>
 </html>
