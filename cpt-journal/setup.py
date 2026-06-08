@@ -1,10 +1,9 @@
 import os
 
-# Create all necessary folders
 os.makedirs('views/admin', exist_ok=True)
 os.makedirs('public', exist_ok=True)
 
-# ── views/index.ejs ──────────────────────────────────────────
+# ── index.ejs ──────────────────────────────────
 with open('views/index.ejs', 'w') as f:
     f.write("""<!DOCTYPE html>
 <html lang="en">
@@ -41,7 +40,7 @@ with open('views/index.ejs', 'w') as f:
     <p class="text-muted">No posts yet.</p>
   <% } else { %>
     <div class="row g-4">
-      <% posts.forEach(post => { %>
+      <% posts.forEach(function(post) { %>
         <div class="col-md-6 col-lg-4">
           <div class="card h-100 shadow-sm post-card">
             <div class="card-body">
@@ -54,7 +53,7 @@ with open('views/index.ejs', 'w') as f:
             </div>
           </div>
         </div>
-      <% }) %>
+      <% }); %>
     </div>
   <% } %>
 </div>
@@ -65,7 +64,7 @@ with open('views/index.ejs', 'w') as f:
 </body>
 </html>""")
 
-# ── views/post.ejs ────────────────────────────────────────────
+# ── post.ejs ───────────────────────────────────
 with open('views/post.ejs', 'w') as f:
     f.write("""<!DOCTYPE html>
 <html lang="en">
@@ -96,9 +95,14 @@ with open('views/post.ejs', 'w') as f:
   <a href="/" class="btn btn-sm btn-outline-secondary mb-4">Back to posts</a>
   <article class="mb-5">
     <h1 class="fw-bold"><%= post.title %></h1>
-    <p class="text-muted">By <strong><%= post.author %></strong> | <%= new Date(post.created_at).toLocaleDateString() %></p>
+    <p class="text-muted">
+      By <strong><%= post.author %></strong> |
+      <%= new Date(post.created_at).toLocaleDateString() %>
+    </p>
     <hr>
-    <div class="post-content"><%- post.content.replace(/\\n/g, "<br>") %></div>
+    <div class="post-content">
+      <%- post.content.replace(/\\n/g, '<br>') %>
+    </div>
   </article>
   <section>
     <h4 class="mb-3">Comments (<span id="count"><%= comments.length %></span>)</h4>
@@ -106,13 +110,15 @@ with open('views/post.ejs', 'w') as f:
       <% if (comments.length === 0) { %>
         <p id="none" class="text-muted">No comments yet. Be the first!</p>
       <% } %>
-      <% comments.forEach(c => { %>
+      <% comments.forEach(function(c) { %>
         <div class="border rounded p-3 mb-3 bg-light">
           <strong><%= c.author_name %></strong>
-          <span class="text-muted small ms-2"><%= new Date(c.created_at).toLocaleDateString() %></span>
+          <span class="text-muted small ms-2">
+            <%= new Date(c.created_at).toLocaleDateString() %>
+          </span>
           <p class="mb-0 mt-1"><%= c.body %></p>
         </div>
-      <% }) %>
+      <% }); %>
     </div>
     <div class="card mt-4 shadow-sm">
       <div class="card-body">
@@ -136,58 +142,58 @@ with open('views/post.ejs', 'w') as f:
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  document.getElementById("sub").addEventListener("click", async () => {
-    const name = document.getElementById("cname").value.trim();
-    const body = document.getElementById("cbody").value.trim();
-    const msg  = document.getElementById("msg");
+  var postId = '<%= post.id %>';
+  document.getElementById('sub').addEventListener('click', async function() {
+    var name = document.getElementById('cname').value.trim();
+    var body = document.getElementById('cbody').value.trim();
+    var msg  = document.getElementById('msg');
     if (!name || !body) {
-      msg.className = "alert alert-warning";
-      msg.textContent = "Please fill in both fields.";
-      msg.classList.remove("d-none");
+      msg.className = 'alert alert-warning';
+      msg.textContent = 'Please fill in both fields.';
+      msg.classList.remove('d-none');
       return;
     }
-    const btn = document.getElementById("sub");
+    var btn = document.getElementById('sub');
     btn.disabled = true;
-    btn.textContent = "Posting...";
+    btn.textContent = 'Posting...';
     try {
-      const res  = await fetch("/post/<%= post.id %>/comment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      var res  = await fetch('/post/' + postId + '/comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ author_name: name, body: body })
       });
-      const data = await res.json();
+      var data = await res.json();
       if (data.ok) {
-        const none = document.getElementById("none");
+        var none = document.getElementById('none');
         if (none) none.remove();
-        const div = document.createElement("div");
-        div.className = "border rounded p-3 mb-3 bg-light";
-        div.innerHTML = "<strong>" + data.comment.author_name + "</strong>" +
-          "<span class='text-muted small ms-2'>Just now</span>" +
-          "<p class='mb-0 mt-1'>" + data.comment.body + "</p>";
-        document.getElementById("list").appendChild(div);
-        document.getElementById("count").textContent =
-          parseInt(document.getElementById("count").textContent) + 1;
-        document.getElementById("cname").value = "";
-        document.getElementById("cbody").value = "";
-        msg.className = "alert alert-success";
-        msg.textContent = "Comment posted!";
-        msg.classList.remove("d-none");
-        setTimeout(() => msg.classList.add("d-none"), 3000);
+        var div = document.createElement('div');
+        div.className = 'border rounded p-3 mb-3 bg-light';
+        div.innerHTML = '<strong>' + data.comment.author_name + '</strong>' +
+          '<span class="text-muted small ms-2">Just now</span>' +
+          '<p class="mb-0 mt-1">' + data.comment.body + '</p>';
+        document.getElementById('list').appendChild(div);
+        var counter = document.getElementById('count');
+        counter.textContent = parseInt(counter.textContent) + 1;
+        document.getElementById('cname').value = '';
+        document.getElementById('cbody').value = '';
+        msg.className = 'alert alert-success';
+        msg.textContent = 'Comment posted!';
+        msg.classList.remove('d-none');
+        setTimeout(function() { msg.classList.add('d-none'); }, 3000);
       }
-    } catch (e) {
-      msg.className = "alert alert-danger";
-      msg.textContent = "Error. Try again.";
-      msg.classList.remove("d-none");
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Submit Comment";
+    } catch(e) {
+      msg.className = 'alert alert-danger';
+      msg.textContent = 'Error. Please try again.';
+      msg.classList.remove('d-none');
     }
+    btn.disabled = false;
+    btn.textContent = 'Submit Comment';
   });
 </script>
 </body>
 </html>""")
 
-# ── views/about.ejs ───────────────────────────────────────────
+# ── about.ejs ──────────────────────────────────
 with open('views/about.ejs', 'w') as f:
     f.write("""<!DOCTYPE html>
 <html lang="en">
@@ -220,7 +226,7 @@ with open('views/about.ejs', 'w') as f:
   <p>From stunning beaches to world-class wine regions, CPT Journal captures the best of the Mother City.</p>
   <hr>
   <h4>The Author</h4>
-  <p>Written by <strong>Jihaad Marcus</strong> as part of Task 2 (Blog / Content Platform) for DLBITPEWP01_E at IU Internationale Hochschule.</p>
+  <p>Written by <strong>Jihaad Marcus</strong> as part of Task 2 for DLBITPEWP01_E at IU Internationale Hochschule.</p>
   <a href="/" class="btn btn-dark mt-3">Back to blog</a>
 </div>
 <footer class="bg-dark text-white text-center py-3 mt-5">
@@ -230,7 +236,7 @@ with open('views/about.ejs', 'w') as f:
 </body>
 </html>""")
 
-# ── views/admin/login.ejs ─────────────────────────────────────
+# ── admin/login.ejs ────────────────────────────
 with open('views/admin/login.ejs', 'w') as f:
     f.write("""<!DOCTYPE html>
 <html lang="en">
@@ -246,7 +252,7 @@ with open('views/admin/login.ejs', 'w') as f:
     <div class="card-body p-4">
       <h4 class="fw-bold mb-1">CPT Journal</h4>
       <p class="text-muted small mb-4">Administrator Login</p>
-      <% if (error) { %>
+      <% if (error !== null && error !== undefined && error !== '') { %>
         <div class="alert alert-danger"><%= error %></div>
       <% } %>
       <form method="POST" action="/admin/login">
@@ -270,7 +276,7 @@ with open('views/admin/login.ejs', 'w') as f:
 </body>
 </html>""")
 
-# ── views/admin/dashboard.ejs ─────────────────────────────────
+# ── admin/dashboard.ejs ────────────────────────
 with open('views/admin/dashboard.ejs', 'w') as f:
     f.write("""<!DOCTYPE html>
 <html lang="en">
@@ -299,10 +305,12 @@ with open('views/admin/dashboard.ejs', 'w') as f:
     <div class="table-responsive">
       <table class="table table-bordered table-hover align-middle">
         <thead class="table-dark">
-          <tr><th>#</th><th>Title</th><th>Author</th><th>Date</th><th>Actions</th></tr>
+          <tr>
+            <th>#</th><th>Title</th><th>Author</th><th>Date</th><th>Actions</th>
+          </tr>
         </thead>
         <tbody>
-          <% posts.forEach(post => { %>
+          <% posts.forEach(function(post) { %>
             <tr>
               <td><%= post.id %></td>
               <td><a href="/post/<%= post.id %>" target="_blank"><%= post.title %></a></td>
@@ -316,7 +324,7 @@ with open('views/admin/dashboard.ejs', 'w') as f:
                 </form>
               </td>
             </tr>
-          <% }) %>
+          <% }); %>
         </tbody>
       </table>
     </div>
@@ -329,14 +337,14 @@ with open('views/admin/dashboard.ejs', 'w') as f:
 </body>
 </html>""")
 
-# ── views/admin/form.ejs ──────────────────────────────────────
+# ── admin/form.ejs ─────────────────────────────
 with open('views/admin/form.ejs', 'w') as f:
     f.write("""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= post ? 'Edit Post' : 'New Post' %> | CPT Journal</title>
+  <title>Post Form | CPT Journal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
@@ -347,24 +355,42 @@ with open('views/admin/form.ejs', 'w') as f:
   </div>
 </nav>
 <div class="container my-5" style="max-width:720px">
-  <h2 class="fw-bold mb-4"><%= post ? 'Edit Post' : 'Create New Post' %></h2>
+  <% if (post) { %>
+    <h2 class="fw-bold mb-4">Edit Post</h2>
+  <% } else { %>
+    <h2 class="fw-bold mb-4">Create New Post</h2>
+  <% } %>
   <form method="POST" action="<%= action %>">
     <div class="mb-3">
-      <label class="form-label fw-semibold">Title *</label>
-      <input type="text" name="title" class="form-control form-control-lg" required
-             value="<%= post ? post.title : '' %>">
+      <label class="form-label fw-semibold">Title</label>
+      <% if (post) { %>
+        <input type="text" name="title" class="form-control form-control-lg" required value="<%= post.title %>">
+      <% } else { %>
+        <input type="text" name="title" class="form-control form-control-lg" required value="">
+      <% } %>
     </div>
     <div class="mb-3">
       <label class="form-label fw-semibold">Author</label>
-      <input type="text" name="author" class="form-control"
-             value="<%= post ? post.author : 'Jihaad Marcus' %>">
+      <% if (post) { %>
+        <input type="text" name="author" class="form-control" value="<%= post.author %>">
+      <% } else { %>
+        <input type="text" name="author" class="form-control" value="Jihaad Marcus">
+      <% } %>
     </div>
     <div class="mb-4">
-      <label class="form-label fw-semibold">Content *</label>
-      <textarea name="content" class="form-control" rows="12" required><%= post ? post.content : '' %></textarea>
+      <label class="form-label fw-semibold">Content</label>
+      <% if (post) { %>
+        <textarea name="content" class="form-control" rows="12" required><%= post.content %></textarea>
+      <% } else { %>
+        <textarea name="content" class="form-control" rows="12" required></textarea>
+      <% } %>
     </div>
     <div class="d-flex gap-2">
-      <button type="submit" class="btn btn-dark"><%= post ? 'Save Changes' : 'Publish Post' %></button>
+      <% if (post) { %>
+        <button type="submit" class="btn btn-dark">Save Changes</button>
+      <% } else { %>
+        <button type="submit" class="btn btn-dark">Publish Post</button>
+      <% } %>
       <a href="/admin" class="btn btn-outline-secondary">Cancel</a>
     </div>
   </form>
@@ -376,7 +402,7 @@ with open('views/admin/form.ejs', 'w') as f:
 </body>
 </html>""")
 
-# ── public/style.css ──────────────────────────────────────────
+# ── public/style.css ───────────────────────────
 with open('public/style.css', 'w') as f:
     f.write("""body { font-family: 'Segoe UI', sans-serif; }
 .hero { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); }
@@ -385,14 +411,14 @@ with open('public/style.css', 'w') as f:
 .post-content { font-size: 1.05rem; line-height: 1.8; }
 """)
 
+print("All files created successfully.")
 print("")
-print("SUCCESS - All files created:")
-print("  views/index.ejs")
-print("  views/post.ejs")
-print("  views/about.ejs")
-print("  views/admin/login.ejs")
-print("  views/admin/dashboard.ejs")
-print("  views/admin/form.ejs")
-print("  public/style.css")
+print("views/index.ejs      - Homepage")
+print("views/post.ejs       - Post detail + AJAX comments")
+print("views/about.ejs      - About page")
+print("views/admin/login.ejs     - Admin login")
+print("views/admin/dashboard.ejs - Admin post manager")
+print("views/admin/form.ejs      - Create and edit posts")
+print("public/style.css     - Custom styles")
 print("")
-print("Now run:  npm start")
+print("Run: npm start")
