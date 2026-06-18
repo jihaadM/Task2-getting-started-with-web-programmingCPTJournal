@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard | CPT Journal</title>
+  <title>Admin Dashboard | CPT Journal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+
 <nav class="navbar navbar-dark bg-dark">
   <div class="container">
     <a class="navbar-brand fw-bold" href="/">CPT Journal</a>
@@ -17,37 +18,99 @@
     </div>
   </div>
 </nav>
+
 <div class="container my-5">
-  <h2 class="fw-bold mb-4">Admin Dashboard</h2>
+
+  <h2 class="fw-bold mb-1">Admin Dashboard</h2>
+  <p class="text-muted mb-4">
+    You are logged in as administrator. Session expires automatically after 2 hours of inactivity,
+    or immediately if you click Logout above.
+  </p>
+
+  <!-- ===================== POSTS TABLE (CRUD) ===================== -->
+  <h4 class="fw-semibold mb-3">Posts <span class="text-muted fs-6">(Create, Read, Update, Delete)</span></h4>
+
   <% if (posts.length === 0) { %>
     <div class="alert alert-info">No posts yet. <a href="/admin/new">Create one</a>.</div>
   <% } else { %>
-    <div class="table-responsive">
+    <div class="table-responsive mb-5">
       <table class="table table-bordered table-hover align-middle">
         <thead class="table-dark">
-          <tr><th>#</th><th>Title</th><th>Author</th><th>Date</th><th>Actions</th></tr>
+          <tr><th>#</th><th>Title</th><th>Author</th><th>Published</th><th style="width:180px">Actions</th></tr>
         </thead>
         <tbody>
-          <% posts.forEach(post => { %>
+          <% posts.forEach(function(post) { %>
             <tr>
-              <td><%= post.id %></td>
-              <td><a href="/post/<%= post.id %>" target="_blank"><%= post.title %></a></td>
+              <td class="text-muted"><%= post.id %></td>
+              <td>
+                <a href="/post/<%= post.id %>" target="_blank" class="text-decoration-none fw-semibold">
+                  <%= post.title %>
+                </a>
+              </td>
               <td><%= post.author %></td>
-              <td><%= new Date(post.created_at).toLocaleDateString() %></td>
+              <td class="text-muted small">
+                <%= new Date(post.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+              </td>
               <td>
                 <a href="/admin/edit/<%= post.id %>" class="btn btn-sm btn-outline-primary me-1">Edit</a>
                 <form method="POST" action="/admin/delete/<%= post.id %>" class="d-inline"
-                      onsubmit="return confirm('Delete this post and all its comments?')">
+                      onsubmit="return confirm('Delete this post and ALL its comments? This cannot be undone.')">
                   <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                 </form>
               </td>
             </tr>
-          <% }) %>
+          <% }); %>
         </tbody>
       </table>
     </div>
+    <p class="text-muted small"><%= posts.length %> post(s) total.</p>
   <% } %>
+
+  <!-- ===================== COMMENT MODERATION (NEW) ===================== -->
+  <h4 class="fw-semibold mb-3 mt-5">Comment Moderation</h4>
+  <p class="text-muted small mb-3">
+    Remove individual comments without deleting the post they belong to.
+  </p>
+
+  <% if (comments.length === 0) { %>
+    <div class="alert alert-info">No comments have been submitted yet.</div>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-dark">
+          <tr><th>#</th><th>Post</th><th>Author</th><th>Comment</th><th>Date</th><th style="width:90px">Action</th></tr>
+        </thead>
+        <tbody>
+          <% comments.forEach(function(c) { %>
+            <tr>
+              <td class="text-muted"><%= c.id %></td>
+              <td>
+                <a href="/post/<%= c.post_id %>" target="_blank" class="text-decoration-none">
+                  <%= c.post_title %>
+                </a>
+              </td>
+              <td><%= c.author_name %></td>
+              <td style="max-width:300px"><%= c.body.length > 80 ? c.body.slice(0,80) + '...' : c.body %></td>
+              <td class="text-muted small">
+                <%= new Date(c.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+              </td>
+              <td>
+                <form method="POST" action="/admin/comment/delete/<%= c.id %>"
+                      onsubmit="return confirm('Delete this comment permanently?')">
+                  <input type="hidden" name="redirectTo" value="/admin">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-muted small"><%= comments.length %> comment(s) total.</p>
+  <% } %>
+
 </div>
+
 <footer class="bg-dark text-white text-center py-3 mt-5">
   <p class="mb-0 small">2026 CPT Journal | Jihaad Marcus | DLBITPEWP01_E</p>
 </footer>

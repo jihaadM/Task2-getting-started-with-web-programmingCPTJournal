@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= post.title %> | CPT Journal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="/style.css" rel="stylesheet">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -18,33 +17,61 @@
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
-        <li class="nav-item"><a class="nav-link" href="/admin/login">Admin</a></li>
+        <% if (isAdmin) { %>
+          <li class="nav-item"><a class="nav-link" href="/admin">Dashboard</a></li>
+        <% } else { %>
+          <li class="nav-item"><a class="nav-link" href="/admin/login">Admin</a></li>
+        <% } %>
       </ul>
     </div>
   </div>
 </nav>
+
 <div class="container my-5" style="max-width:800px">
   <a href="/" class="btn btn-sm btn-outline-secondary mb-4">Back to posts</a>
+
   <article class="mb-5">
     <h1 class="fw-bold"><%= post.title %></h1>
-    <p class="text-muted">By <strong><%= post.author %></strong> | <%= new Date(post.created_at).toLocaleDateString() %></p>
+    <p class="text-muted">
+      By <strong><%= post.author %></strong> |
+      <%= new Date(post.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+    </p>
     <hr>
-    <div class="post-content"><%- post.content.replace(/\n/g, "<br>") %></div>
+    <div style="font-size:1.05rem; line-height:1.8">
+      <%- post.content.replace(/\n/g, '<br>') %>
+    </div>
   </article>
+
   <section>
     <h4 class="mb-3">Comments (<span id="count"><%= comments.length %></span>)</h4>
+
     <div id="list">
       <% if (comments.length === 0) { %>
         <p id="none" class="text-muted">No comments yet. Be the first!</p>
       <% } %>
-      <% comments.forEach(c => { %>
-        <div class="border rounded p-3 mb-3 bg-light">
-          <strong><%= c.author_name %></strong>
-          <span class="text-muted small ms-2"><%= new Date(c.created_at).toLocaleDateString() %></span>
-          <p class="mb-0 mt-1"><%= c.body %></p>
+      <% comments.forEach(function(c) { %>
+        <div class="border rounded p-3 mb-3 bg-light" id="comment-<%= c.id %>">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <strong><%= c.author_name %></strong>
+              <span class="text-muted small ms-2">
+                <%= new Date(c.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+              </span>
+              <p class="mb-0 mt-1"><%= c.body %></p>
+            </div>
+            <% if (isAdmin) { %>
+              <!-- Visible ONLY to logged-in admin: moderation control -->
+              <form method="POST" action="/admin/comment/delete/<%= c.id %>"
+                    onsubmit="return confirm('Delete this comment?')">
+                <input type="hidden" name="redirectTo" value="/post/<%= post.id %>">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+              </form>
+            <% } %>
+          </div>
         </div>
-      <% }) %>
+      <% }); %>
     </div>
+
     <div class="card mt-4 shadow-sm">
       <div class="card-body">
         <h5 class="card-title">Leave a Comment</h5>
@@ -62,57 +89,58 @@
     </div>
   </section>
 </div>
+
 <footer class="bg-dark text-white text-center py-3 mt-5">
   <p class="mb-0 small">2026 CPT Journal | Jihaad Marcus | DLBITPEWP01_E</p>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  document.getElementById("sub").addEventListener("click", async () => {
-    const name = document.getElementById("cname").value.trim();
-    const body = document.getElementById("cbody").value.trim();
-    const msg  = document.getElementById("msg");
+  var postId = '<%= post.id %>';
+  document.getElementById('sub').addEventListener('click', async function() {
+    var name = document.getElementById('cname').value.trim();
+    var body = document.getElementById('cbody').value.trim();
+    var msg  = document.getElementById('msg');
     if (!name || !body) {
-      msg.className = "alert alert-warning";
-      msg.textContent = "Please fill in both fields.";
-      msg.classList.remove("d-none");
+      msg.className = 'alert alert-warning';
+      msg.textContent = 'Please fill in both fields.';
+      msg.classList.remove('d-none');
       return;
     }
-    const btn = document.getElementById("sub");
+    var btn = document.getElementById('sub');
     btn.disabled = true;
-    btn.textContent = "Posting...";
+    btn.textContent = 'Posting...';
     try {
-      const res  = await fetch("/post/<%= post.id %>/comment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      var res  = await fetch('/post/' + postId + '/comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ author_name: name, body: body })
       });
-      const data = await res.json();
+      var data = await res.json();
       if (data.ok) {
-        const none = document.getElementById("none");
+        var none = document.getElementById('none');
         if (none) none.remove();
-        const div = document.createElement("div");
-        div.className = "border rounded p-3 mb-3 bg-light";
-        div.innerHTML = "<strong>" + data.comment.author_name + "</strong>" +
-          "<span class='text-muted small ms-2'>Just now</span>" +
-          "<p class='mb-0 mt-1'>" + data.comment.body + "</p>";
-        document.getElementById("list").appendChild(div);
-        document.getElementById("count").textContent =
-          parseInt(document.getElementById("count").textContent) + 1;
-        document.getElementById("cname").value = "";
-        document.getElementById("cbody").value = "";
-        msg.className = "alert alert-success";
-        msg.textContent = "Comment posted!";
-        msg.classList.remove("d-none");
-        setTimeout(() => msg.classList.add("d-none"), 3000);
+        var div = document.createElement('div');
+        div.className = 'border rounded p-3 mb-3 bg-light';
+        div.innerHTML = '<strong>' + data.comment.author_name + '</strong>' +
+          '<span class="text-muted small ms-2">Just now</span>' +
+          '<p class="mb-0 mt-1">' + data.comment.body + '</p>';
+        document.getElementById('list').appendChild(div);
+        var counter = document.getElementById('count');
+        counter.textContent = parseInt(counter.textContent) + 1;
+        document.getElementById('cname').value = '';
+        document.getElementById('cbody').value = '';
+        msg.className = 'alert alert-success';
+        msg.textContent = 'Comment posted!';
+        msg.classList.remove('d-none');
+        setTimeout(function() { msg.classList.add('d-none'); }, 3000);
       }
-    } catch (e) {
-      msg.className = "alert alert-danger";
-      msg.textContent = "Error. Try again.";
-      msg.classList.remove("d-none");
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Submit Comment";
+    } catch(e) {
+      msg.className = 'alert alert-danger';
+      msg.textContent = 'Error. Please try again.';
+      msg.classList.remove('d-none');
     }
+    btn.disabled = false;
+    btn.textContent = 'Submit Comment';
   });
 </script>
 </body>
