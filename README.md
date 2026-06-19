@@ -292,17 +292,49 @@ Comment moderation (admin only):
 
 ---
 
-## Security Notes
+## Security Notes 1/2
 
 | Concern | Mitigation |
 |---------|-----------|
-| XSS (cross-site scripting) | All user input rendered in EJS uses `<%= %>` (HTML-escaped). Comment text is also stripped of HTML tags server-side before storage. |
-| SQL injection | All database queries use `better-sqlite3` parameterised prepared statements. No raw string interpolation in SQL. |
-| Admin credentials | Stored in `.env` only. Never hardcoded. `.env` is in `.gitignore`. |
-| Session security | `express-session` configured with `httpOnly: true` and `sameSite: 'strict'`. Sessions expire after 2 hours. |
-| Route protection | All `/admin/*` routes are wrapped by `requireAdmin()` middleware that checks `req.session.isAdmin` before executing any logic. |
-
+| XSS (cross-site scripting) | `<%= %>` (HTML-escaped) is used for all user input displayed in EJS. Additionally, HTML tags are removed from comment text server-side before to storage. | | SQL injection | `better-sqlite3` parameterized prepared statements are used in all database queries. SQL does not interpolate raw strings. | | Admin credentials | Only stored in `.env`. `.env` is in `.gitignore`. | | Session security | `express-session` configured with `httpOnly: true` and `sameSite: 'strict'` is never hardcoded. After two hours, sessions end. | | Route protection | The middleware `requireAdmin()` wraps all `/admin/*` routes and verifies `req.session.isAdmin` prior to carrying out any logic.
 ---
+## Security Notes 2/2
+
+CPT Journal implements defense-in-depth security for all visitor-submitted content, particularly the comment form, which is the only point where unauthenticated users can write data to the database.
+
+### SQL Injection Prevention
+
+All database queries throughout the application use **parameterized queries** via `better-sqlite3`'s prepared statement API. User input is never concatenated directly into SQL strings.
+
+**Example — comment insertion (`app.js`):**
+```js
+db.prepare(
+  'INSERT INTO comments (post_id, author_name, body) VALUES (?, ?, ?)'
+).run(req.params.id, safeAuthorName, safeBody);
+```
+
+The `?` placeholders are bound separately from the query text by the database driver itself. This means a malicious input such as `'; DROP TABLE comments; --` is always treated as a literal text value to be stored, never as executable SQL. This pattern is used consistently across every `INSERT`, `UPDATE`, `DELETE`, and `SELECT` statement in `app.js` and `db.js` — there is no raw string interpolation into SQL anywhere in the codebase.
+
+### Cross-Site Scripting (XSS) Prevention
+
+XSS protection is implemented in **two independent layers**, so a failure in one layer does not expose the application:
+
+**Layer 1 — Input sanitization (server-side, on write):**
+Before any comment is saved to the database, the `sanitizeInput()` function in `app.js` strips all HTML tags using a regular expression (`/<[^>]*>/g`) and enforces a maximum length of 1000 characters. This removes payloads such as `<script>...</script>` or `<img onerror="...">` before they ever reach storage.
+
+**Layer 2 — Output escaping (server-side, on render):**
+All comment data is rendered in `views/post.ejs` using EJS's **escaped output tag** `<%= c.body %>`, never the unescaped `<%- %>` tag. The escaped tag automatically converts `<`, `>`, `&`, `"`, and `'` into their corresponding HTML entities before the page is sent to the browser. This means that even if a tag were to survive sanitization, it would render as visible plain text rather than execute as active markup or script.
+
+This two-layer approach (sanitize on input, escape on output) follows the OWASP-recommended defense-in-depth principle: an attacker would need to defeat both layers simultaneously to successfully inject a working script.
+
+### Other Security Measures
+
+| Concern | Mitigation |
+|---------|-----------|
+| Admin credentials | Stored only in `.env`, excluded from Git via `.gitignore`. Never hardcoded in source. |
+| Session security | `express-session` configured with `httpOnly: true` (blocks JavaScript access to the cookie) and `sameSite: 'strict'` (blocks cross-site cookie transmission, mitigating CSRF). Sessions expire after 2 hours. |
+| Route protection | All `/admin/*` routes are wrapped by a `requireAdmin()` middleware function that checks `req.session.isAdmin` before any route logic executes, redirecting unauthenticated requests to the login page. |
+| Input length limits | Comment and post fields enforce maximum lengths server-side to prevent oversized submissions. |
 
 ## Troubleshooting
 

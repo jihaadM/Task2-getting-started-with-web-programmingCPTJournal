@@ -90,16 +90,69 @@ app.get('/post/:id', (req, res) => {
 });
 
 // AJAX — visitor submits a comment (Fetch API, no page reload)
+// ============================================================
+// AJAX — Visitor submits a comment (Fetch API, no page reload)
+//
+// SECURITY LAYER 1 — SQL INJECTION DEFENSE:
+// The INSERT query below uses a PARAMETERIZED QUERY via
+// better-sqlite3's prepared statements. The "?" placeholders
+// are bound separately from the SQL string itself, so user
+// input is NEVER concatenated directly into the query text.
+// This means a malicious comment like:
+//   '; DROP TABLE comments; --
+// is treated as a literal string value to insert, not as
+// executable SQL — it cannot break out of the query.
+//
+// SECURITY LAYER 2 — XSS DEFENSE (input sanitization):
+// Before saving, sanitizeInput() strips any HTML tags from
+// the submitted name and comment text using a regex, so  This
+// prevents stored XSS where a visitor submits a comment like
+//   <script>alert('hacked')</script>
+// The tags are removed before the data ever reaches the
+// database, so a malicious payload is neutralised at the
+// point of entry.
+//
+// SECURITY LAYER 3 — XSS DEFENSE (output escaping):
+// Even if a tag somehow survived sanitisation, views/post.ejs
+// renders every comment using EJS's escaped output tag
+// <%= c.body %> (NOT <%- c.body %>). The <%= %> tag
+// automatically converts <, >, &, and quotes into safe HTML
+// entities before sending to the browser, so even raw markup
+// stored in the database would display as plain text rather
+// than execute as code. This is defense-in-depth: two
+// independent layers (sanitize on input, escape on output)
+// protect against XSS even if one layer were bypassed.
+// ============================================================
 app.post('/post/:id/comment', (req, res) => {
   const { author_name, body } = req.body;
+
   if (!author_name || !body) {
     return res.status(400).json({ ok: false, error: 'Name and comment are required.' });
   }
-  const clean = (str) => str.replace(/<[^>]*>/g, '').trim().slice(0, 1000);
 
+  // Strip HTML/script tags and enforce a maximum length to
+  // prevent oversized or markup-laden submissions.
+  function sanitizeInput(str) {
+    return str
+      .replace(/<[^>]*>/g, '')   // remove any HTML tags, e.g. <script>, <img onerror=...>
+      .trim()
+      .slice(0, 1000);          // cap length to prevent abuse
+  }
+
+  const safeAuthorName = sanitizeInput(author_name);
+  const safeBody        = sanitizeInput(body);
+
+  if (!safeAuthorName || !safeBody) {
+    return res.status(400).json({ ok: false, error: 'Comment cannot be empty after sanitization.' });
+  }
+
+  // PARAMETERIZED QUERY: post_id, safeAuthorName, and safeBody
+  // are bound as separate parameters, never inserted directly
+  // into the SQL string. This is the standard defense against
+  // SQL injection in better-sqlite3 and all modern DB drivers.
   const info = db.prepare(
     'INSERT INTO comments (post_id, author_name, body) VALUES (?, ?, ?)'
-  ).run(req.params.id, clean(author_name), clean(body));
+  ).run(req.params.id, safeAuthorName, safeBody);
 
   const comment = db.prepare('SELECT * FROM comments WHERE id = ?').get(info.lastInsertRowid);
   res.json({ ok: true, comment });
