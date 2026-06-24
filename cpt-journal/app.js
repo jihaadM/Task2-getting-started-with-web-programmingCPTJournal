@@ -1,20 +1,78 @@
 // ============================================================
 // CPT Journal — app.js
-// Task 2: Blog/Content Platform | DLBITPEWP01_E
 //
-// ADMIN SECURITY MODEL (documented per tutor feedback):
-// 1. Credentials (ADMIN_USER, ADMIN_PASS) are stored in .env,
-//    never hardcoded in this file.
-// 2. On successful login, req.session.isAdmin = true is set.
-//    Express-session signs a cookie and stores this flag
-//    server-side, so the browser never sees the raw value.
-// 3. EVERY /admin/* route below is wrapped with the
-//    requireAdmin() middleware, which checks
-//    req.session.isAdmin before allowing the request through.
-//    If the check fails, the visitor is redirected to login.
-// 4. /admin/logout destroys the entire session, immediately
-//    revoking access — the visitor must log in again to
-//    reach any protected route.
+// SECURITY IMPLEMENTATION SUMMARY (consolidated reference)
+// All four mechanisms below work together to protect the
+// application. Each is implemented in this file unless noted.
+// ------------------------------------------------------------
+//
+// 1. SQL INJECTION DEFENSE — Parameterized Queries
+//    WHERE: Every db.prepare(...) call in this file
+//    (see /post/:id/comment, /admin/new, /admin/edit/:id,
+//    /admin/delete/:id, /admin/comment/delete/:id, and db.js)
+//    HOW: All SQL statements use "?" placeholders. User input
+//    (req.params.id, req.body fields) is passed as separate
+//    bound arguments to .run() / .get() / .all() — NEVER
+//    concatenated into the SQL string itself. better-sqlite3
+//    binds these values safely, so input such as
+//    '; DROP TABLE comments; --
+//    is stored as a literal string, not executed as SQL.
+//
+// 2. XSS DEFENSE — Layer 1: Input Sanitization
+//    WHERE: sanitizeInput() function inside the
+//    POST /post/:id/comment route
+//    HOW: Strips all HTML tags via regex (/<[^>]*>/g) and
+//    caps length to 1000 characters before any comment is
+//    written to the database. Removes payloads such as
+//    <script>...</script> at the point of entry.
+//
+// 3. XSS DEFENSE — Layer 2: Output Escaping
+//    WHERE: views/post.ejs (NOT in this file — rendering
+//    happens in the EJS template)
+//    HOW: Comments are rendered using EJS's escaped tag
+//    <%= c.body %>, never the unescaped <%- c.body %>.
+//    <%= %> automatically converts <, >, &, and quotes into
+//    HTML entities before the page reaches the browser, so
+//    any markup that survived sanitization still cannot
+//    execute. Layers 2 and 3 together form defense-in-depth:
+//    an attacker must defeat sanitization AND escaping to
+//    succeed.
+//
+// 4. SESSION SECURITY — Admin Authentication
+//    WHERE: app.use(session({...})) configuration block below
+//    HOW:
+//      - secret: process.env.SESSION_SECRET signs the session
+//        cookie so it cannot be forged or tampered with.
+//      - httpOnly: true blocks client-side JavaScript from
+//        reading the cookie, mitigating session-stealing via XSS.
+//      - sameSite: 'strict' blocks the cookie from being sent
+//        on requests originating from other websites,
+//        mitigating CSRF (cross-site request forgery).
+//      - maxAge: 2 hours forces automatic logout after
+//        inactivity, limiting the window of exposure if a
+//        session is somehow compromised.
+//    Credentials themselves (ADMIN_USER, ADMIN_PASS) are read
+//    from process.env, never hardcoded — see the .env file
+//    (excluded from Git via .gitignore).
+//
+// 5. ROUTE PROTECTION — requireAdmin() Middleware
+//    WHERE: requireAdmin() function defined below, then passed
+//    as the second argument to every protected route, e.g.
+//    app.get('/admin', requireAdmin, (req, res) => {...})
+//    HOW: Express runs requireAdmin() BEFORE the route's own
+//    handler. It checks req.session.isAdmin === true; if the
+//    check fails, the request is redirected to /admin/login
+//    and the protected route's logic never executes. This
+//    guards every /admin/* route: dashboard, new post, edit
+//    post, delete post, and comment moderation.
+//
+// 6. LOGOUT — Session Destruction
+//    WHERE: GET /admin/logout route below
+//    HOW: req.session.destroy() completely erases the session,
+//    including the isAdmin flag. Any subsequent request to a
+//    protected route will fail the requireAdmin() check and
+//    redirect to login — access is revoked immediately, not
+//    just on the client side.
 // ============================================================
 
 require('dotenv').config();

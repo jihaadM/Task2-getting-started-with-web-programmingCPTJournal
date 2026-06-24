@@ -352,11 +352,3 @@ The `views/` folder is missing or empty. Refer to the project structure above an
 
 ---
 
-## Course Information
-
-| Field | Detail |
-|-------|--------|
-| Course | DLBITPEWP01\_E — Getting Started in Web Programming |
-| Task | Task 2 — Blog / Content Platform |
-| Phase | Development / Reflection Phase (Phase 2) |
-| Student | Jihaad Marcus |
