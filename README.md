@@ -195,9 +195,11 @@ PORT=8080
 
 ### Database
 
+
+You do not need to run any SQL scripts or configure a separate database server because no manual database setup or SQL script execution is required — `db.js` creates the `posts` and `comments` tables and seeds three sample posts automatically the first time the server starts.
+
 The SQLite database file (`journal.db`) is created automatically inside `cpt-journal/` the first time the server starts. Three sample Cape Town travel posts are seeded on first run so the blog has content to display immediately.
 
-You do not need to run any SQL scripts or configure a separate database server.
 
 ---
 
@@ -262,6 +264,8 @@ Task2-getting-started-with-web-programmingCPTJournal/
 ---
 
 ## Admin Access
+
+> **Note:** This application does not ship with a default admin/admin login. You must create your own credentials in the `.env` file (see [Environment Configuration](#environment-configuration)) before the login form will work — there is no fallback password. There is a given username and password which can be used as well for login which can be found in the `.env` file
 
 1. Navigate to [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
 2. Enter the username and password you set in your `.env` file
